@@ -1,10 +1,28 @@
 import anthropic
 from app.core.config import settings
 import logging
+import httpx
+import os
 
 logger = logging.getLogger(__name__)
 
-client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+# Create httpx client with proxy support
+proxies = None
+if os.getenv('http_proxy') or os.getenv('https_proxy'):
+    http_proxy = os.getenv('http_proxy') or os.getenv('HTTP_PROXY')
+    https_proxy = os.getenv('https_proxy') or os.getenv('HTTPS_PROXY')
+    proxies = {
+        "http://": http_proxy,
+        "https://": https_proxy,
+    }
+    logger.info(f"Using proxy for Anthropic API: {https_proxy}")
+
+# Create Anthropic client with proxy-aware httpx client
+http_client = httpx.Client(proxies=proxies, timeout=60.0) if proxies else None
+client = anthropic.Anthropic(
+    api_key=settings.ANTHROPIC_API_KEY,
+    http_client=http_client
+)
 
 
 def summarize_article(title: str, content: str) -> str:
@@ -19,7 +37,7 @@ Content: {content}
 Focus on the key technical points and significance. Keep it brief and informative."""
 
         message = client.messages.create(
-            model="claude-3-5-sonnet-20241022",
+            model="claude-3-haiku-20240307",
             max_tokens=300,
             messages=[
                 {"role": "user", "content": prompt}

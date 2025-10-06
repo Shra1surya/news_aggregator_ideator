@@ -42,7 +42,7 @@ def fetch_feed(source_name: str, feed_url: str) -> List[Dict]:
         if feed.bozo:
             logger.warning(f"Feed parsing warning for {source_name}: {feed.bozo_exception}")
 
-        for entry in feed.entries[:20]:  # Limit to 20 most recent
+        for entry in feed.entries[:4]:  # Limit to 4 per source (20 total across 5 sources)
             article = {
                 "title": entry.get("title", ""),
                 "url": entry.get("link", ""),

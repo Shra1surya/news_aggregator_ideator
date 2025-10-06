@@ -67,8 +67,8 @@ async def get_articles(
     source: str | None = None,
     db: Session = Depends(get_db)
 ):
-    """Get articles with optional filtering."""
-    query = db.query(Article).order_by(Article.published_date.desc())
+    """Get articles with optional filtering (excludes archived)."""
+    query = db.query(Article).filter(Article.is_archived == False).order_by(Article.published_date.desc())
 
     if source:
         query = query.filter(Article.source == source)
@@ -108,3 +108,49 @@ async def get_sources(db: Session = Depends(get_db)):
     """Get list of available news sources."""
     sources = db.query(Article.source).distinct().all()
     return {"sources": [s[0] for s in sources]}
+
+
+@router.post("/articles/archive-all")
+async def archive_all_articles(db: Session = Depends(get_db)):
+    """Archive all current articles."""
+    from datetime import datetime
+
+    articles = db.query(Article).filter(Article.is_archived == False).all()
+    count = len(articles)
+
+    for article in articles:
+        article.is_archived = True
+        article.archived_at = datetime.now()
+
+    db.commit()
+    return {"message": f"Archived {count} articles"}
+
+
+@router.delete("/articles/delete-all")
+async def delete_all_articles(db: Session = Depends(get_db)):
+    """Delete all articles (both active and archived)."""
+    count = db.query(Article).count()
+    db.query(Article).delete()
+    db.commit()
+    return {"message": f"Deleted {count} articles"}
+
+
+@router.post("/articles/cleanup")
+async def cleanup_old_archives(db: Session = Depends(get_db)):
+    """Delete archived articles older than 3 days."""
+    from datetime import datetime, timedelta
+
+    three_days_ago = datetime.now() - timedelta(days=3)
+
+    old_articles = db.query(Article).filter(
+        Article.is_archived == True,
+        Article.archived_at < three_days_ago
+    ).all()
+
+    count = len(old_articles)
+
+    for article in old_articles:
+        db.delete(article)
+
+    db.commit()
+    return {"message": f"Deleted {count} archived articles older than 3 days"}

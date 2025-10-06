@@ -14,5 +14,7 @@ class Article(Base):
     content = Column(Text, nullable=True)
     summary = Column(Text, nullable=True)
     is_summarized = Column(Boolean, default=False)
+    is_archived = Column(Boolean, default=False, index=True)
+    archived_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())

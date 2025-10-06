@@ -53,6 +53,45 @@ function App() {
     }
   }
 
+  const archiveAllArticles = async () => {
+    if (!confirm('Archive all current articles? They will be automatically deleted after 3 days.')) {
+      return
+    }
+    try {
+      const response = await axios.post(`${API_BASE_URL}/articles/archive-all`)
+      alert(response.data.message)
+      await loadArticles()
+    } catch (error) {
+      console.error('Error archiving articles:', error)
+      alert('Error archiving articles')
+    }
+  }
+
+  const deleteAllArticles = async () => {
+    if (!confirm('Delete ALL articles permanently? This cannot be undone!')) {
+      return
+    }
+    try {
+      const response = await axios.delete(`${API_BASE_URL}/articles/delete-all`)
+      alert(response.data.message)
+      await loadArticles()
+    } catch (error) {
+      console.error('Error deleting articles:', error)
+      alert('Error deleting articles')
+    }
+  }
+
+  const cleanupOldArchives = async () => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/articles/cleanup`)
+      alert(response.data.message)
+      await loadArticles()
+    } catch (error) {
+      console.error('Error cleaning up archives:', error)
+      alert('Error cleaning up archives')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header
@@ -61,6 +100,9 @@ function App() {
         sources={sources}
         selectedSource={selectedSource}
         onSourceSelect={setSelectedSource}
+        onArchiveAll={archiveAllArticles}
+        onDeleteAll={deleteAllArticles}
+        onCleanup={cleanupOldArchives}
       />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
