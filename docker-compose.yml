@@ -4,8 +4,8 @@ services:
   postgres:
     image: postgres:15-alpine
     environment:
-      HTTP_PROXY: "http://proxy-dmz.intel.com:911/"
-      HTTPS_PROXY: "http://proxy-dmz.intel.com:912/"
+      HTTP_PROXY: "proxy:port"
+      HTTPS_PROXY: "proxy:port"
       NO_PROXY: "localhost,127.0.0.0/8"
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -18,8 +18,8 @@ services:
   redis:
     image: redis:7-alpine
     environment:
-      HTTP_PROXY: "http://proxy-dmz.intel.com:911/"
-      HTTPS_PROXY: "http://proxy-dmz.intel.com:912/"
+      HTTP_PROXY: "proxy:port"
+      HTTPS_PROXY: "proxy:port"
       NO_PROXY: "localhost,127.0.0.0/8"
     ports:
       - "6379:6379"
@@ -28,8 +28,8 @@ services:
     build:
       context: ./backend
       args:
-        HTTP_PROXY: "http://proxy-dmz.intel.com:911"
-        HTTPS_PROXY: "http://proxy-dmz.intel.com:912"
+        HTTP_PROXY: "proxy:port"
+        HTTPS_PROXY: "proxy:port"
         NO_PROXY: "localhost,127.0.0.0/8"
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
